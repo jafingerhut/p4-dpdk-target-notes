@@ -3,6 +3,14 @@
 # TODO: Add checks for supported OS version(s), and sufficient free
 # RAM and disk space.
 
+# This script downloads about 1 GB of data from the Internet.
+# It ran fine in a system with GB of RAM and 4 CPU cores, as long as
+# 'make -j2' was used for the last make command instead of the
+# original 'make -j', which caused too many jobs to be run in parallel
+# and consumed too much RAM for a 4 GB RAM system.
+
+# It increased disk space by about 4.5 GB during its execution.
+
 set -x
 
 # Set up some environment variables that we need them later
@@ -48,16 +56,11 @@ cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL ..
 make -j
 make install
 
-# For now, run the next commands manually, since with the current
-# contents of the repos, I believe they run a ninja build with 48
-# parallel processes, which is too many for a small memory VM.
-exit 0
-
 cd $SDE/p4-dpdk-target
 git submodule update --init --recursive --force
-./autogen.sh\
+./autogen.sh
 ./configure --prefix=$SDE_INSTALL
-make -j
+make -j2
 make install
 
 # refresh path so we will use python3 from SDE instead the default one
