@@ -1,33 +1,16 @@
 # P4 DPDK target notes
 
-## Build P4 code
 
-There is a very simple L1 switch based on PSA architecture in this repo (see `l1switch`)
-
-Before building the p4 code, please install [p4lang/p4c](https://github.com/p4lang/p4c)
-
-To build the P4 code:
-
-```bash
-cd l1switch
-./build.sh
-```
-
-After compiled, you will get:
-
-- main.spec: the pipeline config
-- main.bfrt.json: the bfrt/tdi config
-- main.pb.txt: P4Runtime config
-- context.json: pipeline context file
-
-## Build P4 DPDK switch
+## Build the DPDK software switch
 
 System tested: Ubuntu 20.04
 
-To build p4 dpdk target, follow the README from [p4-dpdk-target](https://github.com/p4lang/p4-dpdk-target)
-Github repository.
-
-Copy-and-paste steps:
+To build the DPDK software switch, follow the README from the
+[p4-dpdk-target](https://github.com/p4lang/p4-dpdk-target) Github
+repository.  Alternately, you can run the script shown below.  Running
+this script downloads about 1 GB of files from Github, and takes
+approximately 45 minutes on a 2015 era MacBook Pro running an Ubuntu
+20.04 VM in VirtualBox.
 
 ```bash
 # Go to the root directory of your clone of this repository:
@@ -35,11 +18,60 @@ cd p4-dpdk-target-notes
 ./scripts/install-dpdk-sde-v1.sh |& tee log-install-dpdk-sde-v1-out.txt
 ```
 
-## Run P4 DPDK target
+
+## Compile the P4 program
+
+There is a very simple L1 switch based on PSA architecture in the file
+`l1switch/main.p4`.
+
+Before building the P4 code, you must install the open source P4
+compiler [p4lang/p4c](https://github.com/p4lang/p4c).
+
+To compile the P4 program:
+
+```bash
+cd l1switch
+./build.sh
+```
+
+Running the commands above will cause these files to be created:
+
+- `main.spec`: the pipeline config
+- `main.bfrt.json`: the bfrt/tdi config
+- `main.pb.txt`: the P4Runtime P4Info file
+- `context.json`: pipeline context file
+
+
+## Run the DPDK software switch
+
 
 ### Prepare port config
 
-We need to tell the switch how to connect to ports, here is the json schema for port config:
+We need to configure the DPDK software switch with how many ports it
+has, what their port numbers are from the perspective of the P4 code
+running on the DPDK software switch, and which physical or virtual
+Ethernet ports they are connected to.
+
+how to connect to ports. here is the json
+schema for port config:
+
+TODO: Why is there a "port_dir" configuration?
+
+TODO: If a port is configured with "port_dir" equal to "in", does that
+mean that the DPDK software switch can only receive packets from that
+port, and is not able to send packets out that port?  What happens if
+the P4 program attempts to send a packet to that port?
+
+TODO: If a port is configured with "port_dir" equal to "out", does
+that mean that the DPDK software switch will never receive packets
+from that port?  What if some software or device on the other end of
+that port sends a packet to it?  Will it simply not be delivered as an
+input packet to the DPDK software switch, and simply be discarded?
+
+TODO: What do the different values of "port_type" mean?  Do all
+possible combinations of "port_dir" and "port_type" make sense?  Are
+some combinations illegal and should never be part of a correct
+configuration?
 
 ```jsonc
 {
@@ -112,6 +144,7 @@ Here is an example for L1 switch which contains only two ports with id 0 and 1:
 }
 ```
 
+
 ### Prepare switch config
 
 You also need to create a switch config file to tell the switch where to load the pipeline
@@ -157,6 +190,7 @@ and port config, here we provide a simple switch config:
 
 Modify the path to the correct file and save it(e.g. switch_config.json)
 
+
 ### Start the switch
 
 To start the switch, run the following script:
@@ -175,6 +209,7 @@ hash -r
 # We must pass them in sudo to make sure it is correct.
 sudo -E PATH=$PATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH $SDE_INSTALL/bin/bf_switchd --install-dir $SDE_INSTALL --conf switch_config.json
 ```
+
 
 ### Enable the pipeline
 
@@ -195,6 +230,7 @@ port                 - Node
 bfrt> l1switch.enable
 ----> l1switch.enable()
 ```
+
 
 ### Send some traffic between ports
 
@@ -231,6 +267,7 @@ ip netns exec h1 ping 10.0.0.2
 ip netns del h1
 ip netns del h2
 ```
+
 
 ## Start the switch in container
 
