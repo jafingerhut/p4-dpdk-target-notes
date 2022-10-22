@@ -1,68 +1,135 @@
 #! /bin/bash
 
-# Set up some environment variables that we need them later
-# Assume you want to install everything under your home directory
-export SDE=$HOME/sde
-export SDE_INSTALL=$SDE/install
-export LD_LIBRARY_PATH=$SDE_INSTALL/lib:$SDE_INSTALL/lib64:$SDE_INSTALL/lib/x86_64-linux-gnu/:/usr/local/lib64:/usr/local/lib
+# Remember the current directory when the script was started:
+SCRIPT_START_DIR="${PWD}"
 
-# Some dependencies to build the SDE/p4-dpdk-target
-sudo apt update && \
-sudo apt install -y git automake cmake python3 python3-pip
-pip3 install distro # Required by `p4-dpdk-target/tools/setup/sysutils.py` to detect the OS
+THIS_SCRIPT_FILE_MAYBE_RELATIVE="$0"
+THIS_SCRIPT_DIR_MAYBE_RELATIVE="${THIS_SCRIPT_FILE_MAYBE_RELATIVE%/*}"
+THIS_SCRIPT_DIR_ABSOLUTE=`readlink -f "${THIS_SCRIPT_DIR_MAYBE_RELATIVE}"`
 
-# Download everything we need
+os_version_warning() {
+    1>&2 echo "This software has only been tested on these systems:"
+    1>&2 echo "    Fedora 34"
+    1>&2 echo "    Ubuntu 22.04"
+    1>&2 echo ""
+    1>&2 echo "Proceed installing manually at your own risk of"
+    1>&2 echo "significant time spent figuring out how to make it all"
+    1>&2 echo "work, or consider getting VirtualBox and creating an"
+    1>&2 echo "appropriate virtual machine with one of the tested versions."
+}
+
+if [ ! -e /etc/os-release ]
+then
+    1>&2 echo "No file /etc/os-release found.  Aborting because we have"
+    1>&2 echo "no way to tell which Linux distribution and version you"
+    1>&2 echo "are running."
+    exit 1
+fi
+
+supported_os=0
+source /etc/os-release
+if [ "${NAME}" = "Ubuntu" -a \( "${VERSION_ID}" = "22.04" \) ]
+then
+    echo "Found distribution '${NAME}' version '${VERSION_ID}'.  Continuing with installation."
+    supported_os=1
+fi
+if [ "${NAME}" = "Fedora" -a \( "${VERSION_ID}" = "34" \) ]
+then
+    echo "Found distribution '${NAME}' version '${VERSION_ID}'.  Continuing with installation."
+    supported_os=1
+fi
+
+if [ $supported_os == 0 ]
+then
+    os_version_warning
+    1>&2 echo ""
+    1>&2 echo "Here are the contents of /etc/os-release:"
+    cat /etc/os-release
+    exit 1
+fi
+
+# Minimum required system memory is 6 GBytes, minus a few MBytes
+# because from experiments I have run on several different Ubuntu
+# Linux VMs, when you configure them with 2 Gbytes of RAM, the first
+# line of /proc/meminfo shows a little less than that available, I
+# believe because some memory occupied by the kernel is not shown.
+
+min_mem_MBytes=`expr 6 \* \( 1024 - 64 \)`
+memtotal_KBytes=`head -n 1 /proc/meminfo | awk '{print $2;}'`
+memtotal_MBytes=`expr ${memtotal_KBytes} / 1024`
+
+if [ "${memtotal_MBytes}" -lt "${min_mem_MBytes}" ]
+then
+    memtotal_comment="too low"
+    abort_script=1
+else
+    memtotal_comment="enough"
+fi
+
+echo "Minimum recommended memory to run this script: ${min_mem_MBytes} MBytes"
+echo "Memory on this system from /proc/meminfo:      ${memtotal_MBytes} MBytes -> $memtotal_comment"
+
+min_free_disk_MBytes=`expr 8 \* 1024`
+free_disk_MBytes=`df --output=avail --block-size=1M . | tail -n 1`
+
+if [ "${free_disk_MBytes}" -lt "${min_free_disk_MBytes}" ]
+then
+    free_disk_comment="too low"
+    abort_script=1
+else
+    free_disk_comment="enough"
+fi
+
+echo "Minimum free disk space to run this script:    ${min_free_disk_MBytes} MBytes"
+echo "Free disk space on this system from df output: ${free_disk_MBytes} MBytes -> $free_disk_comment"
+
+if [ "${abort_script}" == 1 ]
+then
+    echo ""
+    echo "Aborting script because system has too little RAM or free disk space"
+    exit 1
+fi
+
+cd "${THIS_SCRIPT_DIR_ABSOLUTE}"
+source p4sde_env_setup.sh $HOME/sde
+
+if [ "${NAME}" = "Ubuntu" ]
+then
+    sudo apt update
+
+    # Install Wireshark and tshark on Ubuntu system without having to
+    # answer _any_ questions interactively, except perhaps providing
+    # your password when prompted by 'sudo'.
+    # https://askubuntu.com/questions/1275842/install-wireshark-without-confirm
+    echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark tshark
+
+    sudo apt-get -y install python3-pip
+fi
+
+pip3 install distro
+
 mkdir -p $SDE_INSTALL
 cd $SDE
 git clone --depth=1 https://github.com/p4lang/target-utils --recursive utils
 git clone --depth=1 https://github.com/p4lang/target-syslibs --recursive syslibs
 git clone --depth=1 https://github.com/p4lang/p4-dpdk-target --recursive p4-dpdk-target
 
-# NOTE: The version of meson installed with this script on Ubuntu
-# 20.04 is 0.53.2, and that version does not implement the 'compile'
-# subcommand, according to the output of 'meson --help'.
-
-# The version of meson installed with a similar script on Fedora 34 is
-# 0.62.1, and that version _does_ implement the 'compile' subcommand.
-# Parts of the build commands below rely upon commands like 'meson
-# compile -j4' working.  They fail on Ubuntu 20.04 with meson 0.53.2.
+# NOTE: The version of meson installed by running the install_dep.py
+# program below on some OS versions is:
 
 # Ubuntu 20.04 'sudo apt-get install meson' -> meson 0.53.2 ninja 1.10.0 'meson compile'? no
 # Ubuntu 22.04 'sudo apt-get install meson' -> meson 0.61.2 ninja 1.10.1 'meson compile'? yes
 # Fedora 34 'yum install meson' -> meson 0.62.1 ninja 1.10.2 'meson compile'? yes
 
-# Some other dependencies, here are packages installed (with apt-get command):
-# git unifdef curl python3-setuptools python3-pip python3-wheel python3-cffi
-# libconfig-dev libunwind-dev libffi-dev zlib1g-dev libedit-dev libexpat1-dev clang
-# ninja-build gcc libstdc++6 autotools-dev autoconf autoconf-archive libtool meson
-# google-perftools connect-proxy tshark
-# ... and installed with pip3:
-# thrift protobuf pyelftools scapy six
+# Without a version of meson that implements the 'compile'
+# sub-command, the p4-dpdk-target install script will not work.  meson
+# 0.61.1 and 0.61.2 appear to be new enough, but 0.53.2 is not.
 
 sudo -E python3 p4-dpdk-target/tools/setup/install_dep.py
-# jafingerhut: Got up to here in my VM "Ubuntu 20.04 try p4-dpdk-target-notes"
-# If the successful Fedora 33 install steps are any indication, we should
-# be able to skip the build steps for utils and syslibs directories, and go
-# straight to p4-dpdk-target.  Try that.
-#cd $SDE/utils && \
-#    mkdir build && \
-#    cd build && \
-#    cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON .. && \
-#    make -j && \
-#    make install
-#cd $SDE/syslibs && \
-#    mkdir build && \
-#    cd build && \
-#    cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL .. && \
-#    make -j && \
-#    make install
-cd $SDE/p4-dpdk-target && \
-    git submodule update --init --recursive --force && \
-    ./autogen.sh && \
-    ./configure --prefix=$SDE_INSTALL && \
-# jafingerhut: Got up to here in my VM "Ubuntu 20.04 try2 p4-dpdk-target-notes"
-    make -j && \
-    make install
-
-# refresh path so we will use python3 from SDE instead the default one
-ln -s $SDE_INSTALL/bin/python3.8 $SDE_INSTALL/bin/python3
+cd $SDE/p4-dpdk-target
+git submodule update --init --recursive --force
+./autogen.sh
+./configure --prefix=$SDE_INSTALL
+make -j
+make install
