@@ -41,18 +41,21 @@ git clone --depth=1 https://github.com/p4lang/p4-dpdk-target --recursive p4-dpdk
 
 sudo -E python3 p4-dpdk-target/tools/setup/install_dep.py
 # jafingerhut: Got up to here in my VM "Ubuntu 20.04 try p4-dpdk-target-notes"
-cd $SDE/utils && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON .. && \
-    make -j && \
-    make install
-cd $SDE/syslibs && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL .. && \
-    make -j && \
-    make install
+# If the successful Fedora 33 install steps are any indication, we should
+# be able to skip the build steps for utils and syslibs directories, and go
+# straight to p4-dpdk-target.  Try that.
+#cd $SDE/utils && \
+#    mkdir build && \
+#    cd build && \
+#    cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON .. && \
+#    make -j && \
+#    make install
+#cd $SDE/syslibs && \
+#    mkdir build && \
+#    cd build && \
+#    cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL .. && \
+#    make -j && \
+#    make install
 cd $SDE/p4-dpdk-target && \
     git submodule update --init --recursive --force && \
     ./autogen.sh && \
