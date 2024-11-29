@@ -77,7 +77,7 @@ cd $SDE/p4-dpdk-target && \
     make install
 
 # refresh path so we will use python3 from SDE instead the default one
-ln -s $SDE_INSTALL/bin/python3.8 $SDE_INSTALL/bin/python3
+ln -s $SDE_INSTALL/bin/python3.10 $SDE_INSTALL/bin/python3
 ```
 
 ## Run P4 DPDK target
@@ -176,6 +176,15 @@ and port config, here we provide a simple switch config:
         {
             "device-id": 0,
             "eal-args": "dummy -n 4 -c 7",
+            "mempools": [
+                {
+                    "name": "MEMPOOL0",
+                    "buffer_size": 2304,
+                    "pool_size": 1024,
+                    "cache_size": 256,
+                    "numa_node": 0
+                }
+	    ],
             "p4_programs": [
                 {
                     "program-name": "l1switch",
@@ -185,6 +194,8 @@ and port config, here we provide a simple switch config:
                     "p4_pipelines": [
                         {
                             "p4_pipeline_name": "pipe",
+			    "core_id": 1,
+			    "numa_node": 0,
                             "context": "Absolute path to context.json",
                             "config": "Absolute path to main.spec",
                             "pipe_scope": [
