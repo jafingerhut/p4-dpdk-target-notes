@@ -64,4 +64,7 @@ make -j2
 make install
 
 # refresh path so we will use python3 from SDE instead the default one
-ln -s $SDE_INSTALL/bin/python3.8 $SDE_INSTALL/bin/python3
+# TODO: I have seen the version 3.8 in the original instructions, but
+# as of 2024-Nov it is 3.10.  Consider making this script more
+# flexible and auto-detecting which version number was installed.
+ln -s $SDE_INSTALL/bin/python3.10 $SDE_INSTALL/bin/python3
