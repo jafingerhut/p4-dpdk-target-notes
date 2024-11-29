@@ -40,6 +40,17 @@ git clone --depth=1 https://github.com/p4lang/p4-dpdk-target --recursive p4-dpdk
 # ... and installed with pip3:
 # thrift protobuf pyelftools scapy six
 
+# Note: Install tshark in a way that on Ubuntu does not require an
+# interactive answer to a configuration question of whether to install
+# it setuid or not.  Without these extra commands, doing `sudo apt-get
+# isntall -y tshark` hangs for several minutes waiting for an
+# interactive response, even if the user cannot see any question or
+# prompt.  I learned how to do this non-interactively here:
+# https://askubuntu.com/questions/1275842/install-wireshark-without-confirm
+
+echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark tshark
+
 sudo -E python3 p4-dpdk-target/tools/setup/install_dep.py
 
 cd $SDE/utils
