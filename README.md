@@ -218,6 +218,7 @@ hash -r
 
 # For security reason, the PATH and LD_LIBRARY_PATH won't pass to root user even if we use "sudo -E"
 # We must pass them in sudo to make sure it is correct.
+sudo -E PATH=$PATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH ../scripts/set_hugepages.sh
 sudo -E PATH=$PATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH $SDE_INSTALL/bin/bf_switchd --install-dir $SDE_INSTALL --conf switch_config.json
 ```
 
