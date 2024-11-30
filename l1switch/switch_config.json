@@ -24,19 +24,19 @@
                 {
                     "program-name": "l1switch",
                     "sai_default_init": false,
-                    "bfrt-config": "/home/andy/p4-dpdk-target-notes/l1switch/main.bfrt.json",
+                    "bfrt-config": "/home/andy/p4-dpdk-target-notes/l1switch/output/main.bfrt.json",
                     "port-config": "/home/andy/p4-dpdk-target-notes/l1switch/ports.json",
                     "p4_pipelines": [
                         {
                             "p4_pipeline_name": "pipe",
 			    "core_id": 1,
 			    "numa_node": 0,
-                            "context": "/home/andy/p4-dpdk-target-notes/l1switch/context.json",
-                            "config": "/home/andy/p4-dpdk-target-notes/l1switch/main.spec",
+                            "context": "/home/andy/p4-dpdk-target-notes/l1switch/output/context.json",
+                            "config": "/home/andy/p4-dpdk-target-notes/l1switch/output/main.spec",
                             "pipe_scope": [
                                 0
                             ],
-                            "path": "/home/andy/p4-dpdk-target-notes/l1switch/main.spec"
+                            "path": "/home/andy/p4-dpdk-target-notes/l1switch/output/main.spec"
                         }
                     ]
                 }

@@ -117,10 +117,11 @@ Here is an example for L1 switch which contains only two ports with id 0 and 1:
             "dev_port": 0,
             "port_name": "veth0",
             "mempool_name": "MEMPOOL0",
-            "pipe_name": "pipe",
             "port_dir": "default",
             "port_in_id": 0,
+            "pipe_in": "pipe",
             "port_out_id": 0,
+            "pipe_out": "pipe",
             "port_type": "tap",
             "tap_port_attributes": {
                 "mtu": 1500
@@ -130,10 +131,11 @@ Here is an example for L1 switch which contains only two ports with id 0 and 1:
             "dev_port": 1,
             "port_name": "veth1",
             "mempool_name": "MEMPOOL0",
-            "pipe_name": "pipe",
             "port_dir": "default",
             "port_in_id": 1,
+            "pipe_in": "pipe",
             "port_out_id": 1,
+            "pipe_out": "pipe",
             "port_type": "tap",
             "tap_port_attributes": {
                 "mtu": 1500
