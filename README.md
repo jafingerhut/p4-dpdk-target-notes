@@ -32,7 +32,7 @@ To compile the P4 program:
 ```bash
 cd l1switch
 export PATH="${PWD}/../scripts:${PATH}"
-build.sh main.p4
+build.sh main.p4 --arch psa
 ```
 
 Running the commands above will cause these files to be created

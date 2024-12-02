@@ -1,0 +1,10 @@
+{
+  "program_name" : "main",
+  "build_date" : "Mon Dec  2 00:17:51 2024",
+  "compile_command" : "p4c-dpdk --arch pna -o output/main.spec --bf-rt-schema output/main.bfrt.json --context output/main.context.json --p4runtime-files output/main.txtpb --p4runtime-format text main.p4",
+  "compiler_version" : "0.1 (SHA: 929c928da BUILD: Release)",
+  "schema_version" : "0.1",
+  "target" : "DPDK",
+  "tables" : [],
+  "externs" : []
+}
