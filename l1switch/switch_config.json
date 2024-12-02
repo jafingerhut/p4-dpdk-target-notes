@@ -31,7 +31,7 @@
                             "p4_pipeline_name": "pipe",
 			    "core_id": 1,
 			    "numa_node": 0,
-                            "context": "/home/andy/p4-dpdk-target-notes/l1switch/output/context.json",
+                            "context": "/home/andy/p4-dpdk-target-notes/l1switch/output/main.context.json",
                             "config": "/home/andy/p4-dpdk-target-notes/l1switch/output/main.spec",
                             "pipe_scope": [
                                 0

@@ -31,15 +31,17 @@ To compile the P4 program:
 
 ```bash
 cd l1switch
-./build.sh
+export PATH="${PWD}/../scripts:${PATH}"
+build.sh main.p4
 ```
 
-Running the commands above will cause these files to be created:
+Running the commands above will cause these files to be created
+in the "output" subdirectory:
 
 - `main.spec`: the pipeline config
 - `main.bfrt.json`: the bfrt/tdi config
-- `main.pb.txt`: the P4Runtime P4Info file
-- `context.json`: pipeline context file
+- `main.txtpb`: the P4Runtime P4Info file
+- `main.context.json`: pipeline context file
 
 
 ## Run the DPDK software switch

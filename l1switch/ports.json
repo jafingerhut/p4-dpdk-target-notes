@@ -2,7 +2,7 @@
     "ports": [
         {
             "dev_port": 0,
-            "port_name": "veth0",
+            "port_name": "TAP0",
             "mempool_name": "MEMPOOL0",
             "port_dir": "default",
             "port_in_id": 0,
@@ -16,7 +16,7 @@
         },
         {
             "dev_port": 1,
-            "port_name": "veth1",
+            "port_name": "TAP1",
             "mempool_name": "MEMPOOL0",
             "port_dir": "default",
             "port_in_id": 1,
